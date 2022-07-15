@@ -15,8 +15,20 @@ const message = document.querySelector(".message");
 //The hidden button that will appear prompting the player to play again.
 const playAgainButton = document.querySelector(".play-again");
 
-const word = "magnolia";
+let word = "magnolia";
 const guessedLetters = [];
+let remainingGuesses = 8;
+
+const getWord = async function() {
+    const response = await fetch("https://gist.githubusercontent.com/skillcrush-curriculum/7061f1d4d3d5bfe47efbfbcfe42bf57e/raw/5ffc447694486e7dea686f34a6c085ae371b43fe/words.txt")
+    const words = await response.text();
+    //console.log(words);
+    const wordArray = words.split("\n");
+    //console.log(wordArray)
+    const randomIndex = Math.floor(Math.random() * wordArray.length);
+    word = wordArray[randomIndex].trim();
+    placeholders(word);
+}
 
 //A function to add placeholders for each letter.
 const placeholders = function (word) {
@@ -28,7 +40,7 @@ const placeholders = function (word) {
     wordInProgress.innerText = placeholderLetters.join("");
 }
 
-placeholders(word);
+getWord ();
 
 guessLetterButton.addEventListener("click", function(e) {
     e.preventDefault();
@@ -67,6 +79,7 @@ const makeGuess = function (guess) {
         guessedLetters.push(guess);
         //console.log(guessedLetters);
         showGuessedLetters();
+        updateGuessesRemaining(guess);
         updateWordInProgress(guessedLetters);
     }
 }
@@ -96,6 +109,27 @@ const updateWordInProgress = function(guessedLetters) {
     checkIfWin();
 }
 
+//Function to count guesses remaining
+const updateGuessesRemaining = function(guess) {
+    const upperWord = word.toUpperCase();
+    if (!upperWord.includes(guess)) {
+        message.innerText = `Sorry, the word has no ${guess}.`;
+        remainingGuesses -= 1;
+    } else {
+        message.innerText = `Good guess! The word has the letter ${guess}.`;
+    }
+    if (remainingGuesses === 0) {
+        message.innerText = `Sorry, you're out of guesses. The word is ${word}.`;
+        remainingGuessesSpan.innerText = `no guesses`;
+    } else if (remainingGuesses === 1) {
+        remainingGuessesSpan.innerText = `1 guess`;
+    } else {
+        remainingGuessesSpan.innerText = `${remainingGuesses} guesses`;
+    }
+}
+
+
+//Function to check if player has guessed the word and won
 const checkIfWin = function() {
     if (word.toUpperCase() === wordInProgress.innerText) {
         message.classList.add("win");
@@ -103,3 +137,4 @@ const checkIfWin = function() {
         console.log(message.innerHTML);
     }
 }
+
